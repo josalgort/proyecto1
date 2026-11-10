@@ -71,3 +71,49 @@ La puerta de enlace permite conectar la VPC con Internet. Para que las instancia
 **Evidencia:**
 
 ![Internet Gateway asociada a la VPC](img/b1-internet-gateway.png)
+
+
+
+### Creación de la tabla de enrutamiento pública
+
+Se ha creado una tabla de enrutamiento específica para la subred pública de la librería, utilizando la consola de AWS.
+
+| Parámetro | Valor |
+|---|---|
+| Nombre | libreria-rt-publica |
+| ID | rtb-0ed6e0a920063c86e |
+| VPC | libreria-vpc |
+| Subred asociada | libreria-publica |
+| Región | us-east-1 |
+
+#### Configuración de rutas
+
+| Destino | Objetivo | Estado |
+|---|---|---|
+| 10.0.0.0/16 | local | Activo |
+| 0.0.0.0/0 | libreria-igw | Activo |
+
+La ruta local permite la comunicación entre recursos de la VPC. La ruta 0.0.0.0/0 dirige el tráfico destinado a Internet hacia la puerta de enlace libreria-igw.
+
+Se ha asociado explícitamente la subred libreria-publica a esta tabla de enrutamiento.
+
+**Evidencia de las rutas configuradas:**
+
+![Rutas de la tabla pública](img/b1-rutas.png)
+
+**Evidencia de la asociación de subred:**
+
+![Asociación de la subred pública](img/b1-tabla-rutas.png)
+
+### Resultado del bloque B1
+
+Se ha configurado la infraestructura de red del proyecto:
+
+- VPC con direccionamiento 10.0.0.0/16.
+- Subred pública 10.0.1.0/24 en us-east-1a.
+- Asignación automática de IPv4 pública habilitada.
+- Internet Gateway asociada a la VPC.
+- Tabla de enrutamiento pública con salida a Internet.
+- Asociación explícita de la subred pública a la tabla.
+
+La configuración de red está preparada para desplegar las instancias EC2 del proyecto.
