@@ -425,3 +425,38 @@ Las consultas espaciadas devolvieron direcciones de ambos servidores. El reparto
 Aunque estos porcentajes no coinciden exactamente con los pesos 80/20, el resultado es compatible con el funcionamiento probabilístico del enrutamiento ponderado de Route 53. Diez consultas no son suficientes para esperar una distribución exacta.
 
 
+### Comprobación de las respuestas HTTP
+
+Después de verificar el funcionamiento de Route 53, hemos realizado peticiones HTTP al nombre `web.libreria.lab` desde una instancia EC2 de la misma VPC.
+
+El objetivo es comprobar que las dos versiones de Librería Tinta son accesibles a través del nombre DNS privado.
+
+Para ello, utilizamos el siguiente comando:
+
+```bash
+for i in $(seq 1 5); do
+  curl -s --max-time 5 http://web.libreria.lab/ | grep -m 1 '<h1>'
+  sleep 65
+done | sort | uniq -c
+```
+
+Se realizan cinco peticiones separadas por 65 segundos, superando el TTL de 60 segundos configurado en Route 53 para reducir la influencia de la caché DNS.
+
+El comando extrae el título principal (`<h1>`) de cada página y agrupa las respuestas iguales.
+
+
+**Resultado de la prueba:**
+
+| Servidor | Respuestas HTTP | Porcentaje |
+|---|---:|---:|
+| Servidor 1 — Librería Tinta | 4 | 80 % |
+| Servidor 2 — Librería Tinta - Versión 2 | 1 | 20 % |
+| **Total** | **5** | **100 %** |
+
+![Comprobación HTTP de los dos servidores](img/m1-http-curl.png)
+
+Las cinco peticiones realizadas mediante `curl` obtuvieron cuatro respuestas del primer servidor y una del segundo.
+
+En esta ejecución, la distribución coincidió con los pesos 80/20 configurados en Route 53. La prueba confirma que ambos servidores responden correctamente a través de `web.libreria.lab` y que el enrutamiento ponderado está operativo.
+
+La coincidencia exacta de porcentajes es circunstancial: Route 53 aplica una distribución probabilística y los resultados pueden variar entre pruebas.
