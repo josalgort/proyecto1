@@ -318,3 +318,49 @@ La siguiente captura demuestra que nginx responde correctamente a las peticiones
 
 
 
+## B4. Estimación del coste mensual
+
+Para calcular el coste de mantener el servidor web de Librería Tinta funcionando durante un mes, se ha utilizado **AWS Pricing Calculator**.
+
+### Configuración de la estimación
+
+| Parámetro | Valor |
+|---|---|
+| Servicio | Amazon EC2 |
+| Región | us-east-1 (Norte de Virginia) |
+| Tipo de instancia | t3.micro |
+| Sistema operativo | Linux |
+| Número de instancias | 1 |
+| Modalidad de pago | On-Demand |
+| Utilización | 100 % (24 horas al día, 7 días a la semana) |
+| Almacenamiento estimado | 8 GB SSD gp3 |
+| Monitorización detallada | Desactivada |
+| Transferencia de datos adicional | 0 GB |
+| Instantáneas EBS | No incluidas |
+
+### Resultado económico
+
+| Concepto | Coste |
+|---|---|
+| Coste inicial | 0,00 USD |
+| Coste mensual estimado | **8,23 USD** |
+| Coste anual estimado | **98,76 USD** |
+
+El coste mensual estimado para mantener el servidor funcionando permanentemente es de **8,23 USD**, sin incluir posibles impuestos ni consumos adicionales no contemplados en la estimación.
+
+### Evidencia de la estimación
+
+![Estimación de costes en AWS Pricing Calculator](img/b4-estimacion-coste.png)
+
+**[Consultar estimación en AWS Pricing Calculator](https://calculator.aws/#/estimate?id=93e771eaecb9809e3ddd9846ca2e80c06698b5dc)**
+
+### ¿Cómo reducir el coste?
+
+La principal medida para reducir el coste sería **detener la instancia EC2 durante los periodos en los que no se necesite utilizar la página web**.
+
+Al detener la instancia, se deja de facturar el tiempo de computación, aunque el almacenamiento EBS continúa generando costes.
+
+También se pueden estudiar otras modalidades de contratación, como Savings Plans, cuando exista una necesidad de uso continuado y previsible.
+
+Para este proyecto educativo, la opción más adecuada es utilizar la instancia únicamente durante las prácticas y detenerla cuando no sea necesaria.
+
