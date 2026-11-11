@@ -311,3 +311,53 @@ Mientras permanezca detenida, no se factura el tiempo de computación, aunque el
 Para servicios que necesiten funcionar permanentemente, también podrían estudiarse opciones como Savings Plans, que permiten reducir el precio a cambio de asumir un compromiso de uso.
 
 Como se trata de un proyecto educativo, mantendremos la instancia activa únicamente cuando sea necesario trabajar con ella.
+
+
+
+## M1. Segundo servidor web
+
+### Despliegue de la segunda instancia EC2
+
+Para comenzar el nivel medio del proyecto, hemos desplegado un segundo servidor web utilizando la infraestructura AWS ya configurada: la misma VPC, subred pública y grupo de seguridad.
+
+La nueva instancia utiliza Amazon Linux 2023 y nginx, igual que el primer servidor, pero presenta una versión de la página que permite distinguir ambos servidores.
+
+| Parámetro | Valor |
+|---|---|
+| Nombre | `libreria-web-2` |
+| ID de instancia | `i-0359ab09c86cc7845` |
+| Tipo | `t3.micro` |
+| Sistema operativo | Amazon Linux 2023 |
+| Región | `us-east-1` |
+| Zona de disponibilidad | `us-east-1a` |
+| VPC | `libreria-vpc` |
+| Subred | `libreria-publica` |
+| Grupo de seguridad | `libreria-web-sg` |
+| Dirección IPv4 pública | `35.173.126.57` |
+| Estado | En ejecución |
+| Comprobaciones de estado | 3/3 superadas |
+
+### Comprobación de las instancias
+
+En la consola EC2 aparecen los dos servidores funcionando:
+
+- `libreria-web`: `44.202.255.169`
+- `libreria-web-2`: `35.173.126.57`
+
+Ambos utilizan instancias `t3.micro` y se encuentran en la zona de disponibilidad `us-east-1a`.
+
+![Dos instancias EC2 en ejecución](img/m1-dos-instancias.png)
+
+### Verificación del segundo servidor
+
+Hemos accedido desde el navegador a la dirección:
+
+**http://35.173.126.57**
+
+La página muestra el título **«Librería Tinta - Versión 2»** y la identificación **«Servidor 2 - Segunda versión de la web»**, lo que permite diferenciarla de la página alojada en la primera instancia.
+
+También aparecen correctamente el horario, la dirección ficticia, el libro recomendado y los datos del despliegue.
+
+![Página web del segundo servidor funcionando](img/m1-web-servidor-2.png)
+
+Con esta comprobación queda completado el despliegue del segundo servidor web. Ambos servidores responden de forma independiente a través de sus respectivas direcciones IPv4 públicas.
