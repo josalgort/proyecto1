@@ -118,3 +118,51 @@ Se ha configurado la infraestructura de red del proyecto:
 - Asociación explícita de la subred pública a la tabla.
 
 La configuración de red está preparada para desplegar las instancias EC2 del proyecto.
+
+
+
+## B2. Configuración de seguridad
+
+### Creación del grupo de seguridad
+
+Se ha creado un grupo de seguridad en AWS para controlar el tráfico de entrada y salida del servidor web de Librería Tinta.
+
+| Parámetro | Valor |
+|---|---|
+| Nombre | libreria-web-sg |
+| ID | sg-0a1b5c2a23679489e |
+| VPC | libreria-vpc |
+| Descripción | Seguridad del servidor web Librería Tinta |
+| Región | us-east-1 |
+
+### Reglas de entrada
+
+| Tipo | Protocolo | Puerto | Origen |
+|---|---|---|---|
+| HTTP | TCP | 80 | 0.0.0.0/0 |
+| SSH | TCP | 22 | 78.30.6.87/32 |
+
+**Justificación de las reglas:**
+
+- **HTTP (80):** permite que cualquier usuario de Internet acceda a la página web de Librería Tinta.
+- **SSH (22):** restringe el acceso administrativo al servidor a mi dirección IP pública, evitando conexiones SSH desde otras direcciones.
+
+### Reglas de salida
+
+Se ha mantenido la regla de salida predeterminada de AWS, que permite todo el tráfico saliente.
+
+Esto permitirá que la instancia EC2 descargue los paquetes necesarios para instalar y actualizar el servidor web nginx.
+
+### Resultado del bloque B2
+
+El grupo de seguridad `libreria-web-sg` se ha creado correctamente y dispone de las dos reglas de entrada exigidas por el proyecto.
+
+La configuración está preparada para asociarse a la instancia EC2 que se desplegará en el apartado B3.
+
+**Evidencia de configuración:**
+
+![Grupo de seguridad y reglas de entrada](img/b2-grupo-seguridad.png)
+
+
+
+
