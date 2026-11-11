@@ -660,3 +660,57 @@ La siguiente imagen muestra una arquitectura AWS de referencia con balanceador d
 
 ![Arquitectura AWS de referencia](img/arquitectura-libreria_2.png)
 
+
+## Uso de inteligencia artificial
+
+### Herramienta utilizada
+
+Durante el desarrollo del proyecto se ha utilizado **ChatGPT (OpenAI)** como herramienta de apoyo para comprender los servicios de AWS, preparar comandos, desarrollar scripts y resolver incidencias.
+
+Todas las configuraciones se han ejecutado y comprobado en el entorno de AWS Academy.
+
+### Ejemplos de consultas realizadas
+
+**1. Configuración de la infraestructura de red**
+
+> ¿Cómo configuramos una VPC con una subred pública, Internet Gateway y tabla de rutas para alojar una web accesible desde Internet?
+
+Esta consulta permitió organizar el despliegue de la infraestructura y comprobar su conectividad.
+
+**2. Comprobación del DNS ponderado de Route 53**
+
+> ¿Cómo podemos comprobar que dos registros DNS con pesos 80/20 distribuyen las respuestas entre dos servidores EC2?
+
+Se utilizaron comandos `dig` y `curl` para comprobar las respuestas DNS y HTTP.
+
+Inicialmente, 30 consultas consecutivas devolvieron la misma IP. Posteriormente, al espaciar las consultas 65 segundos para superar el TTL de 60 segundos, se obtuvieron respuestas de ambos servidores.
+
+**3. Automatización del despliegue con AWS CLI**
+
+> ¿Cómo podemos crear un grupo de seguridad y desplegar una instancia EC2 mediante Bash y AWS CLI, reutilizando la VPC y la subred existentes?
+
+Esta consulta sirvió para preparar `scripts/desplegar.sh`, que configura las reglas HTTP y SSH, crea la instancia EC2 y muestra su dirección IP pública.
+
+### Incidencia detectada y corregida
+
+Durante la inicialización del primer servidor, nginx no se instaló correctamente y la página web no respondía.
+
+La revisión de los registros de `cloud-init` mostró el siguiente error:
+
+```text
+Exec format error. Missing #! in script?
+Reason: [Errno 8] Exec format error
+```
+
+**Causa:** existía una línea en blanco antes de `#!/bin/bash` en el script de inicialización.
+
+**Solución:** se eliminaron las líneas vacías iniciales, se ejecutó nuevamente el script y se comprobó que nginx funcionaba correctamente.
+
+Esta incidencia puso de manifiesto la necesidad de verificar mediante pruebas reales el código preparado con apoyo de IA. No se ha acreditado que el error fuera causado por ChatGPT.
+
+### Valoración del uso de IA
+
+ChatGPT ha facilitado la comprensión de AWS, la elaboración de comandos y el diagnóstico de problemas.
+
+No obstante, las respuestas de la IA se han contrastado con los resultados obtenidos en AWS, verificando la configuración de los recursos, la conectividad, la resolución DNS y el funcionamiento de los servidores web.
+
