@@ -486,3 +486,162 @@ La estimación no incluye impuestos ni posibles consumos adicionales. Para Route
 **[Consultar presupuesto actualizado en AWS Pricing Calculator](https://calculator.aws/#/estimate?id=e83bd18587acb355cbf8fd1a1f58472261e46dba)**
 
 
+## A1. Nivel avanzado: despliegue mediante AWS CLI
+
+### Objetivo
+
+En este apartado hemos automatizado desde la terminal la creación del grupo de seguridad y el despliegue de un nuevo servidor web para Librería Tinta.
+
+Siguiendo el enunciado, reutilizamos la infraestructura de red del bloque B1 (VPC, subred pública, puerta de enlace y tabla de rutas). Los recursos correspondientes a B2 y B3 se crean mediante AWS CLI.
+
+### Configuración utilizada
+
+| Parámetro | Valor |
+|---|---|
+| Región | `us-east-1` |
+| VPC existente | `libreria-vpc` |
+| ID de VPC | `vpc-0db2e92608e93cf74` |
+| Subred existente | `libreria-publica` |
+| ID de subred | `subnet-03dd91e168f17043d` |
+| Nueva instancia | `libreria-web-cli` |
+| Tipo de instancia | `t3.micro` |
+| Sistema operativo | Amazon Linux 2023 |
+| Par de claves | `vockey` |
+| Nuevo grupo de seguridad | `libreria-web-cli-sg` |
+| HTTP | TCP 80 desde `0.0.0.0/0` |
+| SSH | TCP 22 desde `78.30.6.87/32` |
+| Script de inicialización | `user-data1.sh` |
+
+La dirección IP pública utilizada para restringir SSH se comprobó previamente mediante:
+
+```bash
+curl -s https://checkip.amazonaws.com
+```
+
+El resultado fue `78.30.6.87`. De esta manera, el acceso administrativo queda limitado a nuestra conexión, mientras que el servicio HTTP permanece accesible desde Internet.
+
+### Script de despliegue
+
+Hemos completado la plantilla `desplegar.sh` proporcionada en el enunciado, incorporando los identificadores reales de la infraestructura y los comandos necesarios para configurar el grupo de seguridad, esperar al arranque de EC2 y recuperar su dirección IP pública.
+
+El archivo se encuentra en `scripts/desplegar.sh`:
+
+```bash
+#!/bin/bash
+# Proyecto 1 · Despliegue del servidor web de Librería Tinta
+set -euo pipefail
+export AWS_PAGER=""
+
+REGION="us-east-1"
+SUBNET_ID="subnet-03dd91e168f17043d"
+VPC_ID="vpc-0db2e92608e93cf74"
+MI_IP="78.30.6.87/32"
+ALUMNO="José Antonio Alguacil"
+
+# 1. AMI más reciente de Amazon Linux 2023
+AMI_ID=$(aws ssm get-parameters --region "$REGION" \
+  --names /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64 \
+  --query "Parameters[0].Value" --output text)
+
+# 2. Grupo de seguridad
+SG_ID=$(aws ec2 create-security-group --region "$REGION" \
+  --group-name libreria-web-cli-sg \
+  --description "Web Libreria Tinta (CLI)" \
+  --vpc-id "$VPC_ID" \
+  --query "GroupId" --output text)
+
+# Permitir HTTP (80) desde cualquier origen
+aws ec2 authorize-security-group-ingress --region "$REGION" \
+  --group-id "$SG_ID" \
+  --protocol tcp --port 80 --cidr 0.0.0.0/0
+
+# Permitir SSH (22) únicamente desde nuestra IP
+aws ec2 authorize-security-group-ingress --region "$REGION" \
+  --group-id "$SG_ID" \
+  --protocol tcp --port 22 --cidr "$MI_IP"
+
+# 3. Instancia
+INSTANCE_ID=$(aws ec2 run-instances --region "$REGION" \
+  --image-id "$AMI_ID" \
+  --instance-type t3.micro \
+  --key-name vockey \
+  --subnet-id "$SUBNET_ID" \
+  --associate-public-ip-address \
+  --security-group-ids "$SG_ID" \
+  --user-data file://user-data1.sh \
+  --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=libreria-web-cli},{Key=Proyecto,Value=P1},{Key=Alumno,Value=$ALUMNO}]" \
+  --query "Instances[0].InstanceId" --output text)
+
+echo "Instancia creada: $INSTANCE_ID"
+
+# Esperar a que la instancia esté en ejecución
+aws ec2 wait instance-running --region "$REGION" \
+  --instance-ids "$INSTANCE_ID"
+
+# Obtener la dirección IPv4 pública
+IP=$(aws ec2 describe-instances --region "$REGION" \
+  --instance-ids "$INSTANCE_ID" \
+  --query "Reservations[0].Instances[0].PublicIpAddress" \
+  --output text)
+
+echo "Abre en el navegador: http://$IP"
+```
+
+El script utiliza `set -euo pipefail` para detener la ejecución ante errores y `AWS_PAGER=""` para evitar que la salida de AWS CLI se abra en un visor.
+
+La AMI de Amazon Linux 2023 se obtiene mediante AWS Systems Manager, evitando introducir manualmente un identificador de imagen que pueda quedar desactualizado.
+
+### Ejecución del despliegue
+
+Los archivos `desplegar.sh` y `user-data1.sh` se encuentran en la misma carpeta, conforme al requisito del enunciado.
+
+Desde la raíz del proyecto ejecutamos:
+
+```bash
+cd scripts
+bash desplegar.sh
+```
+
+El script creó el grupo de seguridad, incorporó las reglas HTTP y SSH y lanzó la instancia EC2. Después esperó a que alcanzara el estado `running` y obtuvo su dirección IPv4 pública.
+
+La ejecución finalizó sin errores y mostró:
+
+```text
+Instancia creada: i-07017e67bea4ac663
+Abre en el navegador: http://44.210.131.47
+```
+
+![Ejecución del script de despliegue mediante AWS CLI](img/a1-ejecucion-cli.png)
+
+### Comprobación de la instancia
+
+En la consola de Amazon EC2 comprobamos que el nuevo servidor se había creado utilizando la VPC y la subred existentes.
+
+| Parámetro | Resultado |
+|---|---|
+| Nombre | `libreria-web-cli` |
+| ID de instancia | `i-07017e67bea4ac663` |
+| Estado | En ejecución |
+| Tipo | `t3.micro` |
+| Dirección IPv4 privada | `10.0.1.96` |
+| Dirección IPv4 pública | `44.210.131.47` |
+| Grupo de seguridad | `sg-0e166c2949ee4e73b` |
+| VPC | `libreria-vpc` |
+| Subred | `libreria-publica` |
+
+![Instancia EC2 creada mediante AWS CLI](img/a1-instancia-cli.png)
+
+### Verificación del servidor web
+
+Por último, accedimos desde Firefox a la dirección pública obtenida por el script:
+
+**http://44.210.131.47**
+
+La página de Librería Tinta cargó correctamente, mostrando el horario, la dirección ficticia, el libro recomendado y los datos del despliegue.
+
+![Página de Librería Tinta desplegada mediante AWS CLI](img/a1-web-cli.png)
+
+La prueba confirma que el script permite crear el servidor web desde la terminal sin repetir manualmente la configuración en la consola.
+
+El despliegue cumple los requisitos del nivel avanzado: reutiliza la red existente, configura un nuevo grupo de seguridad, inicia una instancia EC2 con `user-data1.sh` y muestra al finalizar la URL de acceso.
+
