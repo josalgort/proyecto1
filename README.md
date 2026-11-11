@@ -3,9 +3,9 @@
 ## Introducción a la Nube Pública
 ### Primera Evaluación
 
-**Proyecto:** Despliegue de Librería Tinta en AWS.
-**Profesora:** María Teresa Cibeles Mora Mora.
-**Alumno:** José Antonio Alguacil Ortiz.
+**Proyecto:** Despliegue de Librería Tinta en AWS.  
+**Profesora:** María Teresa Cibeles Mora Mora.  
+**Alumno:** José Antonio Alguacil Ortiz.  
 
 ## B1. Infraestructura de red
 
