@@ -645,3 +645,18 @@ La prueba confirma que el script permite crear el servidor web desde la terminal
 
 El despliegue cumple los requisitos del nivel avanzado: reutiliza la red existente, configura un nuevo grupo de seguridad, inicia una instancia EC2 con `user-data1.sh` y muestra al finalizar la URL de acceso.
 
+
+## Diagrama de arquitectura AWS
+
+### Arquitectura implementada
+
+El siguiente diagrama representa la infraestructura desplegada para Librería Tinta en AWS: VPC, subred pública, Internet Gateway, tabla de rutas, tres instancias EC2, grupos de seguridad y zona DNS privada de Route 53.
+
+![Arquitectura AWS de Librería Tinta](img/arquitectura-libreria.png)
+
+### Arquitectura de referencia
+
+La siguiente imagen muestra una arquitectura AWS de referencia con balanceador de carga y Auto Scaling. Se incluye únicamente como ejemplo ilustrativo. Estos servicios no forman parte de la infraestructura desplegada en este proyecto.
+
+![Arquitectura AWS de referencia](img/arquitectura-libreria_2.png)
+
