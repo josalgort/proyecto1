@@ -197,13 +197,13 @@ Se han añadido las etiquetas solicitadas:
 
 **1. Listado de instancias EC2**
 
-La siguiente captura muestra la instancia `libreria-web` en ejecución desde la consola de Amazon EC2.
+La imagen muestra la instancia `libreria-web` en ejecución desde la consola de Amazon EC2.
 
 ![Listado de instancias EC2](img/b3-listado-instancias.png)
 
 **2. Detalles de configuración de la instancia**
 
-La siguiente captura permite comprobar la configuración de la instancia y su asociación con la infraestructura creada previamente.
+Se observan los detalles de la configuración de la instancia y su asociación con la infraestructura creada previamente, en la siguiente imagen.
 
 ![Detalles de la instancia EC2](img/b3-detalle-instancia.png)
 
@@ -218,6 +218,103 @@ El script realiza automáticamente las siguientes operaciones:
 3. Genera el archivo `/usr/share/nginx/html/index.html`.
 4. Personaliza la página de Librería Tinta con su horario, dirección ficticia, libro recomendado y datos del despliegue.
 
-La comprobación del funcionamiento de nginx y del acceso HTTP se documentará a continuación.
+
+### Script de inicialización del servidor web
+
+Para automatizar la instalación y configuración del servidor se utilizó el siguiente script, introducido en el campo **Datos de usuario (User data)** durante la creación de la instancia EC2.
+
+Archivo: `scripts/user-data1.sh`
+
+```bash
+#!/bin/bash
+dnf install -y nginx
+systemctl enable --now nginx
+
+cat > /usr/share/nginx/html/index.html <<EOF
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Librería Tinta</title>
+</head>
+<body>
+  <h1>Librería Tinta</h1>
+  <p>Tu librería de barrio.</p>
+
+  <h2>Horario</h2>
+  <p>Lunes a viernes: 9:00 a 20:00</p>
+  <p>Sábados: 10:00 a 14:00</p>
+
+  <h2>Dirección</h2>
+  <p>Calle de los Libros, 12, Sevilla (dirección ficticia)</p>
+
+  <h2>Libro recomendado</h2>
+  <p>Don Quijote de la Mancha, de Miguel de Cervantes.</p>
+
+  <hr>
+  <small>Desplegado por José Antonio Alguacil en el servidor $(hostname) el $(date '+%d/%m/%Y %H:%M')</small>
+</body>
+</html>
+EOF
+```
+
+**Importante:** la instrucción `#!/bin/bash` debe encontrarse en la primera línea del archivo, sin espacios ni líneas en blanco anteriores.
+
+### Incidencia detectada durante la inicialización
+
+En el primer despliegue, la página web no se encontraba disponible porque nginx no había llegado a instalarse.
+
+Tras acceder a la instancia mediante SSH, se comprobó que el servicio nginx no existía:
+
+```bash
+sudo systemctl status nginx --no-pager
+```
+
+Resultado:
+
+```text
+Unit nginx.service could not be found.
+```
+
+Se revisaron los registros de inicialización de cloud-init, identificándose el siguiente error:
+
+```text
+Exec format error. Missing #! in script?
+Reason: [Errno 8] Exec format error
+```
+
+**Causa:** el script contenía una línea en blanco antes de `#!/bin/bash`. Esto impedía que el sistema identificara correctamente el intérprete necesario para ejecutar el archivo.
+
+**Solución aplicada:** se eliminó la línea en blanco inicial del script almacenado por cloud-init y se ejecutó nuevamente:
+
+```bash
+sudo sed -i '/./,$!d' /var/lib/cloud/instance/scripts/part-001
+sudo /var/lib/cloud/instance/scripts/part-001
+```
+
+La ejecución finalizó correctamente, instalando nginx, habilitando su inicio automático y generando la página HTML.
+
+Esta incidencia demuestra la importancia de respetar la estructura del script de inicialización, especialmente la posición de la primera línea.
+
+### Verificación del funcionamiento del servidor web
+
+Una vez corregida la incidencia, se comprobó el acceso a la página web mediante la dirección IPv4 pública de la instancia:
+
+**http://44.202.255.169**
+
+La página se muestra correctamente e incluye:
+
+- Nombre y presentación de Librería Tinta.
+- Horario de apertura.
+- Dirección ficticia.
+- Libro recomendado.
+- Nombre del responsable, servidor y fecha de despliegue.
+
+La siguiente captura demuestra que nginx responde correctamente a las peticiones HTTP desde Internet.
+
+![Página web de Librería Tinta funcionando](img/b3-web-funcionando.png)
+
+**Resultado:** el servidor web se encuentra operativo y accesible desde Internet mediante el puerto HTTP 80, cumpliendo los requisitos del apartado B3.
+
 
 
