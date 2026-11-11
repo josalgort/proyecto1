@@ -425,10 +425,3 @@ Las consultas espaciadas devolvieron direcciones de ambos servidores. El reparto
 Aunque estos porcentajes no coinciden exactamente con los pesos 80/20, el resultado es compatible con el funcionamiento probabilístico del enrutamiento ponderado de Route 53. Diez consultas no son suficientes para esperar una distribución exacta.
 
 
-
-
-![Distribución de respuestas DNS](img/m1-dns-reparto.png)
-
-La configuración de Route 53 asigna un peso de 80 al servidor 1 (`10.0.1.153`) y de 20 al servidor 2 (`10.0.1.22`).
-
-Estos pesos representan una distribución probabilística, no una proporción exacta en cada grupo de consultas. Por ello, el resultado observado puede diferir del 80/20, especialmente cuando se realiza un número reducido de pruebas.
