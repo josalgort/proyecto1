@@ -460,3 +460,29 @@ Las cinco peticiones realizadas mediante `curl` obtuvieron cuatro respuestas del
 En esta ejecución, la distribución coincidió con los pesos 80/20 configurados en Route 53. La prueba confirma que ambos servidores responden correctamente a través de `web.libreria.lab` y que el enrutamiento ponderado está operativo.
 
 La coincidencia exacta de porcentajes es circunstancial: Route 53 aplica una distribución probabilística y los resultados pueden variar entre pruebas.
+
+
+## M2. Actualización del coste del proyecto
+
+Tras incorporar el segundo servidor web y configurar Route 53, hemos actualizado la estimación económica mediante AWS Pricing Calculator.
+
+El cálculo contempla dos instancias EC2 `t3.micro` con Linux, funcionando las 24 horas del día en la región `us-east-1`, y una zona DNS privada de Route 53 (`libreria.lab`).
+
+### Resultado de la estimación
+
+| Servicio | Coste mensual |
+|---|---:|
+| Amazon EC2 — 2 instancias `t3.micro` | 16,46 USD |
+| Amazon Route 53 — 1 zona alojada privada | 0,50 USD |
+| **Total mensual** | **16,96 USD** |
+| **Total anual** | **203,52 USD** |
+
+![Presupuesto actualizado con EC2 y Route 53](img/m2-presupuesto-final.png)
+
+El presupuesto inicial, correspondiente a un único servidor, era de 8,23 USD mensuales. Con el segundo servidor y la zona DNS privada, aumenta a 16,96 USD al mes.
+
+La estimación no incluye impuestos ni posibles consumos adicionales. Para Route 53 se ha considerado el mantenimiento de la zona privada, sin cargos por consultas DNS realizadas desde la VPC.
+
+**[Consultar presupuesto actualizado en AWS Pricing Calculator](https://calculator.aws/#/estimate?id=e83bd18587acb355cbf8fd1a1f58472261e46dba)**
+
+
