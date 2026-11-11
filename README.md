@@ -165,4 +165,59 @@ La configuración está preparada para asociarse a la instancia EC2 que se despl
 
 
 
+## B3. Despliegue del servidor web
+
+### Creación de la instancia EC2
+
+Se ha desplegado una instancia Amazon EC2 para alojar la página web de **Librería Tinta**, utilizando la infraestructura de red y seguridad configurada en los apartados anteriores.
+
+La instancia se ha creado con los siguientes parámetros:
+
+| Parámetro | Configuración |
+|---|---|
+| Nombre | libreria-web |
+| AMI | Amazon Linux 2023 |
+| Tipo de instancia | t3.micro |
+| Par de claves | vockey |
+| Región | us-east-1 (Norte de Virginia) |
+| VPC | libreria-vpc |
+| Subred | libreria-publica |
+| Dirección IPv4 pública automática | Habilitada |
+| Grupo de seguridad | libreria-web-sg |
+| Almacenamiento | Configuración predeterminada |
+
+Se han añadido las etiquetas solicitadas:
+
+| Clave | Valor |
+|---|---|
+| Proyecto | P1 |
+| Alumno | José Antonio Alguacil |
+
+### Evidencias del despliegue
+
+**1. Listado de instancias EC2**
+
+La siguiente captura muestra la instancia `libreria-web` en ejecución desde la consola de Amazon EC2.
+
+![Listado de instancias EC2](img/b3-listado-instancias.png)
+
+**2. Detalles de configuración de la instancia**
+
+La siguiente captura permite comprobar la configuración de la instancia y su asociación con la infraestructura creada previamente.
+
+![Detalles de la instancia EC2](img/b3-detalle-instancia.png)
+
+### Automatización del servidor web
+
+Durante el lanzamiento se ha introducido un script de inicialización mediante **User data**, basado en el archivo `user-data1.sh` del enunciado.
+
+El script realiza automáticamente las siguientes operaciones:
+
+1. Instala el servidor web nginx mediante `dnf`.
+2. Habilita e inicia el servicio nginx.
+3. Genera el archivo `/usr/share/nginx/html/index.html`.
+4. Personaliza la página de Librería Tinta con su horario, dirección ficticia, libro recomendado y datos del despliegue.
+
+La comprobación del funcionamiento de nginx y del acceso HTTP se documentará a continuación.
+
 
