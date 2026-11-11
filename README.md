@@ -361,3 +361,74 @@ También aparecen correctamente el horario, la dirección ficticia, el libro rec
 ![Página web del segundo servidor funcionando](img/m1-web-servidor-2.png)
 
 Con esta comprobación queda completado el despliegue del segundo servidor web. Ambos servidores responden de forma independiente a través de sus respectivas direcciones IPv4 públicas.
+
+
+
+### Comprobación del reparto DNS ponderado
+
+Una vez creados los dos registros A de `web.libreria.lab`, hemos comprobado su resolución desde la primera instancia EC2, situada dentro de la VPC.
+
+La consulta inicial se realizó mediante:
+
+```bash
+dig web.libreria.lab
+```
+
+El resultado fue satisfactorio (`NOERROR`). El servidor DNS interno de AWS (`10.0.0.2`) devolvió la dirección privada `10.0.1.153`, correspondiente al primer servidor.
+
+![Resolución DNS desde la VPC](img/m1-dns-resolucion.png)
+
+#### Primera prueba: 30 consultas consecutivas
+
+Para observar la distribución de las respuestas DNS, ejecutamos:
+
+```bash
+for i in $(seq 1 30); do dig +short web.libreria.lab; done | sort | uniq -c
+```
+
+Resultado:
+
+```text
+30 10.0.1.153
+```
+
+Las 30 consultas devolvieron la dirección del primer servidor. Este comportamiento puede estar relacionado con la caché DNS, ya que los registros tienen un TTL de 60 segundos.
+
+![Consultas DNS consecutivas](img/m1-dns-prueba-cache.png)
+
+#### Segunda prueba: consultas espaciadas
+
+Para reducir la influencia de la caché, repetimos la prueba introduciendo una espera de 65 segundos entre consultas, superior al TTL configurado.
+
+```bash
+for i in $(seq 1 10); do
+  dig +short web.libreria.lab
+  sleep 65
+done | sort | uniq -c
+```
+
+El comando realiza diez consultas y agrupa los resultados por dirección IP.
+
+
+**Resultado de la prueba:**
+
+| Servidor | IP privada | Peso DNS | Respuestas | Porcentaje |
+|---|---|---:|---:|---:|
+| Servidor 1 | `10.0.1.153` | 80 | 9 | 90 % |
+| Servidor 2 | `10.0.1.22` | 20 | 1 | 10 % |
+| **Total** | | **100** | **10** | **100 %** |
+
+![Distribución de respuestas DNS](img/m1-dns-reparto.png)
+
+Las consultas espaciadas devolvieron direcciones de ambos servidores. El reparto observado fue del 90 % para el primero y del 10 % para el segundo.
+
+Aunque estos porcentajes no coinciden exactamente con los pesos 80/20, el resultado es compatible con el funcionamiento probabilístico del enrutamiento ponderado de Route 53. Diez consultas no son suficientes para esperar una distribución exacta.
+
+
+
+
+![Distribución de respuestas DNS](img/m1-dns-reparto.png)
+
+La configuración de Route 53 asigna un peso de 80 al servidor 1 (`10.0.1.153`) y de 20 al servidor 2 (`10.0.1.22`).
+
+Estos pesos representan una distribución probabilística, no una proporción exacta en cada grupo de consultas. Por ello, el resultado observado puede diferir del 80/20, especialmente cuando se realiza un número reducido de pruebas.
